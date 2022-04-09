@@ -81,11 +81,11 @@ class Trainer_acgan(object):
                 # configure input 
                 real_images = tensor2var(real_images)
                 labels = tensor2var(labels)
-                
+
                 # adversarial ground truths
                 valid = tensor2var(torch.full((real_images.size(0),), 0.9)) # (*, )
                 fake = tensor2var(torch.full((real_images.size(0),), 0.0)) #(*, )
-                
+
                 # ==================== Train D ==================
                 self.D.train()
                 self.G.train()
@@ -146,17 +146,17 @@ class Trainer_acgan(object):
                     .format(elapsed, epoch, self.epochs, epoch,
                             self.epochs, d_loss.item(), g_loss_fake.item(), d_acc))
 
-            # sample images 
+            # sample images
             if (epoch) % self.sample_step == 0:
                 self.G.eval()
                 # save real image
-                save_sample(self.sample_path + '/real_images/', real_images, epoch)
-                
+                save_sample(f'{self.sample_path}/real_images/', real_images, epoch)
+
                 with torch.no_grad():
                     fake_images = self.G(fixed_z, fixed_labels)
-                    # save fake image 
-                    save_sample(self.sample_path + '/fake_images/', fake_images, epoch)
-                    
+                    # save fake image
+                    save_sample(f'{self.sample_path}/fake_images/', fake_images, epoch)
+
                 # sample sample one images
                 save_sample_one_image(self.sample_path, real_images, fake_images, epoch)
 

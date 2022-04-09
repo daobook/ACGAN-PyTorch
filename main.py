@@ -70,8 +70,8 @@ def main(config):
     # create directories if not exist
     make_folder(config.sample_path, config.version)
     make_folder(config.log_path, config.version)
-    make_folder(config.sample_path, config.version + '/real_images')
-    make_folder(config.sample_path, config.version + '/fake_images')
+    make_folder(config.sample_path, f'{config.version}/real_images')
+    make_folder(config.sample_path, f'{config.version}/fake_images')
 
     if config.train:
         if config.model == 'acgan':

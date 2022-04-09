@@ -48,19 +48,19 @@ def _get_inception_layer(sess):
     layername = 'FID_Inception_Net/pool_3:0'
     pool3 = sess.graph.get_tensor_by_name(layername)
     ops = pool3.graph.get_operations()
-    for op_idx, op in enumerate(ops):
+    for op in ops:
         for o in op.outputs:
             shape = o.get_shape()
             if shape._dims is not None:
-              #shape = [s.value for s in shape] TF 1.x
-              shape = [s for s in shape] #TF 2.x
-              new_shape = []
-              for j, s in enumerate(shape):
-                if s == 1 and j == 0:
-                  new_shape.append(None)
-                else:
-                  new_shape.append(s)
-              o.__dict__['_shape_val'] = tf.TensorShape(new_shape)
+                              #shape = [s.value for s in shape] TF 1.x
+                shape = list(shape)
+                new_shape = []
+                for j, s in enumerate(shape):
+                  if s == 1 and j == 0:
+                    new_shape.append(None)
+                  else:
+                    new_shape.append(s)
+                o.__dict__['_shape_val'] = tf.TensorShape(new_shape)
     return pool3
 #-------------------------------------------------------------------------------
 
@@ -91,12 +91,8 @@ def get_activations(images, sess, batch_size=50, verbose=False):
         if verbose:
             print("\rPropagating batch %d/%d" % (i+1, n_batches), end="", flush=True)
         start = i*batch_size
-        
-        if start+batch_size < n_images:
-            end = start+batch_size
-        else:
-            end = n_images
-        
+
+        end = start+batch_size if start+batch_size < n_images else n_images
         batch = images[start:end]
         pred = sess.run(inception_layer, {'FID_Inception_Net/ExpandDims:0': batch})
         pred_arr[start:end] = pred.reshape(batch.shape[0],-1)
@@ -143,7 +139,8 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     # product might be almost singular
     covmean, _ = linalg.sqrtm(sigma1.dot(sigma2), disp=False)
     if not np.isfinite(covmean).all():
-        msg = "fid calculation produces singular product; adding %s to diagonal of cov estimates" % eps
+        msg = f"fid calculation produces singular product; adding {eps} to diagonal of cov estimates"
+
         warnings.warn(msg)
         offset = np.eye(sigma1.shape[0]) * eps
         covmean = linalg.sqrtm((sigma1 + offset).dot(sigma2 + offset))
@@ -152,7 +149,7 @@ def calculate_frechet_distance(mu1, sigma1, mu2, sigma2, eps=1e-6):
     if np.iscomplexobj(covmean):
         if not np.allclose(np.diagonal(covmean).imag, 0, atol=1e-3):
             m = np.max(np.abs(covmean.imag))
-            raise ValueError("Imaginary component {}".format(m))
+            raise ValueError(f"Imaginary component {m}")
         covmean = covmean.real
 
     tr_covmean = np.trace(covmean)
@@ -224,11 +221,7 @@ def get_activations_from_files(files, sess, batch_size=50, verbose=False):
         if verbose:
             print("\rPropagating batch %d/%d" % (i+1, n_batches), end="", flush=True)
         start = i*batch_size
-        if start+batch_size < n_imgs:
-            end = start+batch_size
-        else:
-            end = n_imgs
-        
+        end = min(start+batch_size, n_imgs)
         batch = load_image_batch(files[start:end])
         pred = sess.run(inception_layer, {'FID_Inception_Net/ExpandDims:0': batch})
         pred_arr[start:end] = pred.reshape(batch_size,-1)
@@ -268,7 +261,6 @@ def calculate_activation_statistics_from_files(files, sess, batch_size=50, verbo
 def check_or_download_inception(inception_path):
     ''' Checks if the path to the inception file is valid, or downloads
         the file if it is not present. '''
-    INCEPTION_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
     if inception_path is None:
         inception_path = '/tmp'
     inception_path = pathlib.Path(inception_path)
@@ -277,6 +269,7 @@ def check_or_download_inception(inception_path):
         print("Downloading Inception model")
         from urllib import request
         import tarfile
+        INCEPTION_URL = 'http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz'
         fn, _ = request.urlretrieve(INCEPTION_URL)
         with tarfile.open(fn, mode='r') as f:
             f.extract('classify_image_graph_def.pb', str(model_file.parent))
@@ -306,15 +299,14 @@ def calculate_fid_given_paths(paths, inception_path, low_profile=False):
 
     for p in paths:
         if not os.path.exists(p):
-            raise RuntimeError("Invalid path: %s" % p)
+            raise RuntimeError(f"Invalid path: {p}")
 
     create_inception_graph(str(inception_path))
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
         m1, s1 = _handle_path(paths[0], sess, low_profile=low_profile)
         m2, s2 = _handle_path(paths[1], sess, low_profile=low_profile)
-        fid_value = calculate_frechet_distance(m1, s1, m2, s2)
-        return fid_value
+        return calculate_frechet_distance(m1, s1, m2, s2)
 
 
 if __name__ == "__main__":
