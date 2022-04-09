@@ -42,21 +42,23 @@ class Generator(nn.Module):
         curr_dim = int(curr_dim / 2)
 
         self.l3 = nn.Sequential(
-            nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1, bias=False),
-            nn.BatchNorm2d(int(curr_dim / 2)),
+            nn.ConvTranspose2d(curr_dim, curr_dim // 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(curr_dim // 2),
             nn.ReLU(True),
         )
 
-        curr_dim = int(curr_dim / 2)
+
+        curr_dim //= 2
 
         self.l4 = nn.Sequential(
-            nn.ConvTranspose2d(curr_dim, int(curr_dim / 2), 4, 2, 1, bias=False),
-            nn.BatchNorm2d(int(curr_dim / 2)),
-            nn.ReLU(True)
+            nn.ConvTranspose2d(curr_dim, curr_dim // 2, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(curr_dim // 2),
+            nn.ReLU(True),
         )
-        
-        curr_dim = int(curr_dim / 2)
-        
+
+
+        curr_dim //= 2
+
         self.last = nn.Sequential(
             nn.ConvTranspose2d(curr_dim, self.channels, 4, 2, 1, bias=False),
             nn.Tanh()

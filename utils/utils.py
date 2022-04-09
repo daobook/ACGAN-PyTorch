@@ -86,8 +86,8 @@ def weights_init(m):
 
 def save_sample_one_image(sample_path, real_images, fake_images, epoch, number=0):
 
-    make_folder(sample_path, str(epoch) + '/real_images')
-    make_folder(sample_path, str(epoch) + '/fake_images')
+    make_folder(sample_path, f'{str(epoch)}/real_images')
+    make_folder(sample_path, f'{str(epoch)}/fake_images')
     real_images_path = os.path.join(sample_path, str(epoch), 'real_images')
     fake_images_path = os.path.join(sample_path, str(epoch), 'fake_images')
 
@@ -98,21 +98,23 @@ def save_sample_one_image(sample_path, real_images, fake_images, epoch, number=0
             # save real image
             one_real_image = real_images[i]
             save_image(
-                one_real_image.data, 
-                os.path.join(real_images_path, '{}_real.png'.format(number)),
-                normalize=True
+                one_real_image.data,
+                os.path.join(real_images_path, f'{number}_real.png'),
+                normalize=True,
             )
+
 
             # save fake image
             one_fake_image = fake_images[i]
             save_image(
                 one_fake_image.data,
-                os.path.join(fake_images_path, '{}_fake.png'.format(number)),
-                normalize=True
+                os.path.join(fake_images_path, f'{number}_fake.png'),
+                normalize=True,
             )
 
+
             number += 1
-        
+
         if number == 10000:
             break
 
@@ -125,12 +127,15 @@ def save_sample(path, images, epoch):
         images (tensor): images want to save
         epoch (int): now epoch int, for the save image name
     '''    
-    save_image(images.data[:100], os.path.join(path, '{}.png'.format(epoch)), normalize=True, nrow=10)
+    save_image(
+        images.data[:100],
+        os.path.join(path, f'{epoch}.png'),
+        normalize=True,
+        nrow=10,
+    )
 
 def compute_acc(real_aux, fake_aux, labels, gen_labels):
     # Calculate discriminator accuracy
     pred = np.concatenate([real_aux.data.cpu().numpy(), fake_aux.data.cpu().numpy()], axis=0)
     gt = np.concatenate([labels.data.cpu().numpy(), gen_labels.data.cpu().numpy()], axis=0)
-    d_acc = np.mean(np.argmax(pred, axis=1) == gt)
-
-    return d_acc
+    return np.mean(np.argmax(pred, axis=1) == gt)

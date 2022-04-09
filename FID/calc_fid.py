@@ -9,14 +9,19 @@ def fid_one_list(filePath, fileNAME, fid_dict={}):
     PATH_with_FILE = os.path.join(filePath, fileNAME)
 
     file_list = os.listdir(PATH_with_FILE)
-    file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(PATH_with_FILE,fn)) if not os.path.isdir(os.path.join(PATH_with_FILE,fn)) else 0)
+    file_list.sort(
+        key=lambda fn: 0
+        if os.path.isdir(os.path.join(PATH_with_FILE, fn))
+        else os.path.getmtime(os.path.join(PATH_with_FILE, fn))
+    )
+
     max_value = int(file_list[-1]) + 1
 
-    # start FID calc 
+    # start FID calc
     for i in range(0, max_value, 100):
 
-        real_path = ' ' + os.path.join(PATH_with_FILE, str(i)) + '/real_images'
-        fake_path = ' ' + os.path.join(PATH_with_FILE, str(i)) + '/fake_images'
+        real_path = f' {os.path.join(PATH_with_FILE, str(i))}/real_images'
+        fake_path = f' {os.path.join(PATH_with_FILE, str(i))}/fake_images'
 
         command_line = fid + real_path + fake_path
 
@@ -27,7 +32,7 @@ def fid_one_list(filePath, fileNAME, fid_dict={}):
 
         fid_dict[i] = float(res.stdout[6:-1])
 
-    with open('FID/' + fileNAME + '.log', 'w') as tf:
+    with open(f'FID/{fileNAME}.log', 'w') as tf:
 
         print(PATH_with_FILE + '\n', file=tf)
 
@@ -43,14 +48,19 @@ def fid_all_list(filePath, fid_dict={}):
         print('now file path:\t' + str(PATH_with_FILE) + '\n')
 
         file_list = os.listdir(PATH_with_FILE)
-        file_list.sort(key=lambda fn: os.path.getmtime(os.path.join(PATH_with_FILE,fn)) if not os.path.isdir(os.path.join(PATH_with_FILE,fn)) else 0)
+        file_list.sort(
+            key=lambda fn: 0
+            if os.path.isdir(os.path.join(PATH_with_FILE, fn))
+            else os.path.getmtime(os.path.join(PATH_with_FILE, fn))
+        )
+
         max_value = int(file_list[-1]) + 1
 
         # start FID calc
         for i in range(0, max_value, 100):
 
-            real_path = ' ' + os.path.join(PATH_with_FILE, str(i)) + '/real_images'
-            fake_path = ' ' + os.path.join(PATH_with_FILE, str(i)) + '/fake_images'
+            real_path = f' {os.path.join(PATH_with_FILE, str(i))}/real_images'
+            fake_path = f' {os.path.join(PATH_with_FILE, str(i))}/fake_images'
 
             command_line = fid + real_path + fake_path
 
@@ -61,7 +71,7 @@ def fid_all_list(filePath, fid_dict={}):
             fid_dict[i] = float(res.stdout[6:-1])
 
         # write to the log
-        with open('FID/' + FILE_NAME +'.log', "w") as tf:
+        with open(f'FID/{FILE_NAME}.log', "w") as tf:
 
             print(PATH_with_FILE + '\n', file=tf)
 

@@ -43,13 +43,11 @@ def getdDataset(opt):
             )
         )
 
-    dataloader = DataLoader(
+    return DataLoader(
         dst,
-        batch_size=opt.batch_size, 
+        batch_size=opt.batch_size,
         shuffle=True,
     )
-
-    return dataloader
 
 # %%
 from torchvision.utils import make_grid
